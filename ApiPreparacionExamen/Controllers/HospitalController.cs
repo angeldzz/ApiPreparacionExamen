@@ -2,6 +2,7 @@
 using ApiPreparacionExamen.Repositories;
 using ApiPreparacionExamen.Helpers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ApiPreparacionExamen.Controllers
 {
@@ -18,6 +19,7 @@ namespace ApiPreparacionExamen.Controllers
             this.helperSubirFoto = helperSubirFoto;
         }
 
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<List<Hospital>>> GetHospital()
         {
@@ -29,19 +31,8 @@ namespace ApiPreparacionExamen.Controllers
             return await this.repo.FindHospitalAsync(cod);
         }
         [HttpPost]
-        [Consumes("multipart/form-data")]
-        public async Task<ActionResult> Post([FromForm] Hospital hospital)
+        public async Task<ActionResult> Post(Hospital hospital)
         {
-            if (hospital.Imagen != null)
-            {
-                byte[] datos = await this.helperSubirFoto.ConvertirImagenABytesAsync(hospital.Imagen);
-                hospital.IMAGEN = await this.helperSubirFoto.GuardarArchivoByteAsync(
-                    datos,
-                    hospital.Imagen.FileName,
-                    "wwwroot\\imagenes"
-                );
-            }
-
             await this.repo.CreateHospitalAsync(hospital.HOSPITAL_COD,hospital.NOMBRE,
                                                 hospital.DIRECCION,hospital.TELEFONO,
                                                 hospital.NUM_CAMA, hospital.IMAGEN);

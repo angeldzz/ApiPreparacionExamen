@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.AspNetCore.Http;
+// using Microsoft.AspNetCore.Http; // Removed
 
 namespace ApiPreparacionExamen.Models
 {
@@ -21,8 +21,5 @@ namespace ApiPreparacionExamen.Models
 
         [Column("Imagen")]
         public string? IMAGEN { get; set; }
-
-        [NotMapped]
-        public IFormFile? Imagen { get; set; }
     }
 }
