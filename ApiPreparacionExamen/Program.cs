@@ -1,41 +1,25 @@
-extern alias AzureIdentity;
-
 using ApiPreparacionExamen.Data;
 using ApiPreparacionExamen.Helpers;
 using ApiPreparacionExamen.Repositories;
-using Azure;
-using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Security.KeyVault.Secrets;
-using DefaultAzureCredential = AzureIdentity::Azure.Identity.DefaultAzureCredential;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
-var keyVaultUri = builder.Configuration["KeyVault:VaultUri"];
-if (!string.IsNullOrWhiteSpace(keyVaultUri))
+builder.Services.AddAzureClients(factory =>
 {
-    builder.Configuration.AddAzureKeyVault(
-        new Uri(keyVaultUri),
-        new DefaultAzureCredential());
-}
-
-string? connectionString = null;
-if (!string.IsNullOrWhiteSpace(keyVaultUri))
-{
-    var secretClient = new SecretClient(
-        new Uri(keyVaultUri),
-        new DefaultAzureCredential());
-
-    var secret = await secretClient.GetSecretAsync("sqlServer");
-    connectionString = secret.Value.Value;
-}
-if (string.IsNullOrWhiteSpace(connectionString))
-{
-    throw new InvalidOperationException("SqlServer connection string is missing. Configure it in Key Vault.");
-}
+    factory.AddSecretClient
+    (builder.Configuration.GetSection("KeyVault"));
+});
+SecretClient secretClient =
+    builder.Services.BuildServiceProvider()
+    .GetService<SecretClient>();
+KeyVaultSecret secreto =
+    await secretClient.GetSecretAsync("sqlServer");
+string connectionString = secreto.Value;
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
